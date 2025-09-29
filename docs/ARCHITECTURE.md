@@ -57,7 +57,7 @@ sequenceDiagram
     end
 
     opt If placed in VPC
-        WRK->>WRK: Attach ENI (latency on cold; cached on reuse)
+        WRK->>WRK: Attach ENI (latency on cold cached on reuse)
     end
 ```
 
@@ -79,7 +79,7 @@ flowchart LR
     EVB[EventBridge Rule]
     SQS[SQS Message]
     DDBS[DynamoDB Stream]
-    CRON[Schedule (cron)]
+    CRON[Schedule]
   end
 
   %% CONTROL PLANE
@@ -91,7 +91,7 @@ flowchart LR
 
   %% DATA PLANE
   subgraph Data_Plane[Data Plane]
-    INIT1[Launch microVM<br/>(Firecracker)]
+    INIT1[Launch microVM<br/>]
     INIT2[Fetch code / image]
     INIT3[Start runtime + globals]
     INVOKE[Handler INVOKE]
@@ -103,7 +103,7 @@ flowchart LR
     LOGS[CloudWatch Logs & Metrics]
     XR[X-Ray Traces]
     RETRY[Retries & DLQs]
-    VPC[VPC ENI (optional)]
+    VPC[VPC ENI]
   end
 
   %% WIRES

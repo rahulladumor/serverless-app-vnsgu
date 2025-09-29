@@ -1,0 +1,256 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  Serverless Workshop - Modern Orders API
+  
+  A comprehensive demonstration of serverless computing using:
+  - AWS Lambda (Node.js 22.x with ES modules)
+  - API Gateway HTTP API
+  - DynamoDB with encryption
+  - SQS with DLQ
+  - CloudWatch monitoring
+
+Metadata:
+  AWS::ServerlessRepo::Application:
+    Name: serverless-workshop-orders
+    Description: Modern serverless order management system for educational purposes
+    Author: VNSGU Serverless Workshop
+    SpdxLicenseId: MIT
+    LicenseUrl: LICENSE
+    ReadmeUrl: README.md
+    Labels: ['serverless', 'workshop', 'lambda', 'nodejs22', 'dynamodb', 'sqs']
+    HomePageUrl: https://github.com/vnsgu/serverless-demo
+    SemanticVersion: 1.0.0
+    SourceCodeUrl: https://github.com/vnsgu/serverless-demo
+
+Parameters:
+  Environment:
+    Type: String
+    Default: dev
+    AllowedValues: [dev, staging, prod]
+    Description: Deployment environment
+  
+  TableName:
+    Type: String
+    Default: Orders
+    Description: DynamoDB table name for orders
+    
+  EnableDetailedMonitoring:
+    Type: String
+    Default: 'true'
+    AllowedValues: ['true', 'false']
+    Description: Enable detailed CloudWatch monitoring
+
+Conditions:
+  IsProduction: !Equals [!Ref Environment, prod]
+  EnableMonitoring: !Equals [!Ref EnableDetailedMonitoring, 'true']
+
+Globals:
+  Function:
+    Runtime: nodejs22.x
+    Timeout: 30
+    MemorySize: 1024
+    Tracing: Active
+    Architectures:
+      - x86_64
+    Environment:
+      Variables:
+        TABLE_NAME: !Ref OrdersTable
+        NODE_OPTIONS: "--enable-source-maps"
+Resources:
+  HttpApi:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      CorsConfiguration:
+        AllowOrigins: ['*']
+        AllowHeaders: ['*']
+        AllowMethods: [GET, POST, PUT, DELETE, OPTIONS]
+        AllowCredentials: false
+        MaxAge: 86400
+
+  CreateOrderFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/
+      Handler: handlers/httpCreateOrder.handler
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref OrdersTable
+        - SQSSendMessagePolicy:
+            QueueName: !GetAtt OrderEventsQueue.QueueName
+      Events:
+        PostOrder:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref HttpApi
+            Path: /orders
+            Method: POST
+      Environment:
+        Variables:
+          QUEUE_URL: !Ref OrderEventsQueue
+
+  GetOrderFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/
+      Handler: handlers/httpGetOrder.handler
+      Policies:
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action: dynamodb:GetItem
+              Resource: !GetAtt OrdersTable.Arn
+      Events:
+        GetOrder:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref HttpApi
+            Path: /orders/{id}
+            Method: GET
+
+  OrderProcessorFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/
+      Handler: handlers/orderProcessor.handler
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref OrdersTable
+      Events:
+        SQSEvent:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt OrderEventsQueue.Arn
+            BatchSize: 5
+            Enabled: true
+      Environment:
+        Variables:
+          TABLE_NAME: !Ref OrdersTable
+
+  ListOrdersFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/
+      Handler: handlers/httpListOrders.handler
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref OrdersTable
+      Events:
+        ListOrders:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref HttpApi
+            Path: /orders
+            Method: GET
+  OrdersTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub '${TableName}-${Environment}'
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+        - AttributeName: status
+          AttributeType: S
+        - AttributeName: createdAt
+          AttributeType: S
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: StatusIndex
+          KeySchema:
+            - AttributeName: status
+              KeyType: HASH
+            - AttributeName: createdAt
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+      SSESpecification:
+        SSEEnabled: true
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: !If [IsProduction, true, false]
+      Tags:
+        - Key: Application
+          Value: serverless-workshop
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: CostCenter
+          Value: Education
+
+  OrderEventsQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub 'order-events-${Environment}'
+      VisibilityTimeout: 180  # 3x Lambda timeout
+      MessageRetentionPeriod: 1209600  # 14 days
+      ReceiveMessageWaitTimeSeconds: 20  # Long polling
+      RedrivePolicy:
+        deadLetterTargetArn: !GetAtt OrderEventsDLQ.Arn
+        maxReceiveCount: 3
+      KmsMasterKeyId: alias/aws/sqs
+      Tags:
+        - Key: Application
+          Value: serverless-workshop
+        - Key: Environment
+          Value: !Ref Environment
+
+  OrderEventsDLQ:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub 'order-events-dlq-${Environment}'
+      MessageRetentionPeriod: 1209600  # 14 days
+      KmsMasterKeyId: alias/aws/sqs
+      Tags:
+        - Key: Application
+          Value: serverless-workshop
+        - Key: Environment
+          Value: !Ref Environment
+
+  # CloudWatch Alarms for monitoring
+  CreateOrderErrorAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Condition: EnableMonitoring
+    Properties:
+      AlarmName: !Sub '${AWS::StackName}-CreateOrder-Errors'
+      AlarmDescription: Monitor errors in Create Order function
+      MetricName: Errors
+      Namespace: AWS/Lambda
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 2
+      Threshold: 5
+      ComparisonOperator: GreaterThanThreshold
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref CreateOrderFunction
+      TreatMissingData: notBreaching
+
+  DLQMessageAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Condition: EnableMonitoring
+    Properties:
+      AlarmName: !Sub '${AWS::StackName}-DLQ-Messages'
+      AlarmDescription: Monitor messages in Dead Letter Queue
+      MetricName: ApproximateNumberOfVisibleMessages
+      Namespace: AWS/SQS
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      Dimensions:
+        - Name: QueueName
+          Value: !GetAtt OrderEventsDLQ.QueueName
+      TreatMissingData: notBreaching
+
+Outputs:
+  ApiUrl:
+    Description: HTTP API URL
+    Value: !Sub 'https://${HttpApi}.execute-api.${AWS::Region}.amazonaws.com'
+  OrdersTableName:
+    Description: Orders DynamoDB table
+    Value: !Ref OrdersTable
+  OrdersQueueUrl:
+    Description: Order events queue URL
+    Value: !Ref OrderEventsQueue

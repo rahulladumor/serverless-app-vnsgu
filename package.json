@@ -1,0 +1,63 @@
+{
+  "name": "serverless-workshop-orders",
+  "version": "1.0.0",
+  "description": "A comprehensive hands-on demonstration of serverless computing using AWS Lambda, API Gateway, DynamoDB, and SQS",
+  "private": true,
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "build": "sam build",
+    "deploy": "./scripts/deploy.sh",
+    "demo": "./scripts/demo.sh",
+    "load-test": "./scripts/load-test.sh",
+    "cleanup": "./scripts/cleanup.sh",
+    "validate": "sam validate",
+    "local-api": "sam local start-api",
+    "local-invoke": "sam local invoke",
+    "logs": "sam logs --tail",
+    "test": "echo 'Run npm run demo to test the deployed application'",
+    "lint": "eslint src/**/*.mjs",
+    "lint:fix": "eslint src/**/*.mjs --fix",
+    "format": "prettier --write src/**/*.mjs"
+  },
+  "dependencies": {
+    "uuid": "^10.0.0",
+    "@aws-sdk/client-dynamodb": "^3.660.0",
+    "@aws-sdk/lib-dynamodb": "^3.660.0",
+    "@aws-sdk/client-sqs": "^3.660.0"
+  },
+  "devDependencies": {
+    "eslint": "^8.55.0",
+    "@types/node": "^20.10.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/vnsgu/serverless-demo"
+  },
+  "keywords": [
+    "serverless",
+    "aws",
+    "lambda",
+    "api-gateway", 
+    "dynamodb",
+    "sqs",
+    "workshop"
+  ],
+  "author": {
+    "name": "Rahul Ladumor",
+    "email": "rahuldladumor@gmail.com"
+  },
+  "license": "MIT",
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "os": [
+    "darwin",
+    "linux", 
+    "win32"
+  ],
+  "cpu": [
+    "x64",
+    "arm64"
+  ]
+}

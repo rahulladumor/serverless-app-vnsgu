@@ -63,15 +63,17 @@ function validateOrderData(body) {
 }
 
 // Utility function for structured logging
-function log(level, message, metadata = {}) {
+const log = (level, message, extra = {}) => {
   const logEntry = {
     timestamp: new Date().toISOString(),
     level: level.toUpperCase(),
+    service: 'order-service',
+    function: 'createOrder',
     message,
-    ...metadata
+    ...extra
   };
   console.log(JSON.stringify(logEntry));
-}
+};
 
 export const handler = async (event) => {
   const requestId = event.requestContext?.requestId || 'unknown';
@@ -159,6 +161,13 @@ export const handler = async (event) => {
     });
     
     // Send event to SQS for async processing
+    log('debug', '📨 Preparing to send SQS message', {
+      requestId,
+      orderId,
+      queueUrl: QUEUE_URL,
+      eventType: 'OrderCreated'
+    });
+
     const eventMessage = {
       type: 'OrderCreated',
       timestamp,
@@ -170,7 +179,14 @@ export const handler = async (event) => {
       }
     };
     
-    await sqsClient.send(new SendMessageCommand({
+    log('debug', '📨 Sending message to SQS queue', {
+      requestId,
+      orderId,
+      messageSize: JSON.stringify(eventMessage).length,
+      queueUrl: QUEUE_URL
+    });
+
+    const sqsResult = await sqsClient.send(new SendMessageCommand({
       QueueUrl: QUEUE_URL,
       MessageBody: JSON.stringify(eventMessage),
       MessageAttributes: {
@@ -180,10 +196,12 @@ export const handler = async (event) => {
       }
     }));
     
-    log('info', 'Order event sent to queue successfully', {
+    log('info', '✅ Order event sent to queue successfully', {
       requestId,
       orderId,
-      queueUrl: QUEUE_URL
+      queueUrl: QUEUE_URL,
+      messageId: sqsResult.MessageId,
+      md5OfBody: sqsResult.MD5OfBody
     });
     
     // Return success response

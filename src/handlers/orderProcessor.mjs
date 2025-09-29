@@ -24,6 +24,8 @@ function log(level, message, metadata = {}) {
   const logEntry = {
     timestamp: new Date().toISOString(),
     level: level.toUpperCase(),
+    service: 'order-processor',
+    function: 'orderProcessor',
     message,
     ...metadata
   };
@@ -129,9 +131,29 @@ export const handler = async (event) => {
         });
         
         // Apply business logic for order processing
+        log('debug', '🔄 Applying business logic to order', {
+          messageId,
+          orderId,
+          itemCount: messageBody.detail?.items?.length || 0
+        });
+
         const { newStatus, processingNotes } = await processOrderCreated(messageBody.detail);
         
+        log('debug', '📊 Order processing result', {
+          messageId,
+          orderId,
+          newStatus,
+          processingNotes
+        });
+
         // Update order status in DynamoDB
+        log('debug', '💾 Updating order status in DynamoDB', {
+          messageId,
+          orderId,
+          tableName: TABLE_NAME,
+          newStatus
+        });
+
         const updateParams = {
           TableName: TABLE_NAME,
           Key: { id: orderId },
@@ -153,13 +175,21 @@ export const handler = async (event) => {
         
         const updateResult = await ddbDocClient.send(new UpdateCommand(updateParams));
         
-        log('info', 'Order status updated successfully', {
+        log('info', '✅ Order status updated successfully', {
           messageId,
           orderId,
           oldStatus: 'PENDING',
           newStatus,
           processingNotes,
-          updatedAt: updateResult.Attributes?.updatedAt
+          updatedAt: updateResult.Attributes?.updatedAt,
+          consumedCapacity: updateResult.ConsumedCapacity
+        });
+
+        log('debug', '🎯 SQS message processed completely', {
+          messageId,
+          orderId,
+          finalStatus: newStatus,
+          processingTimeMs: Date.now() - new Date(messageBody.timestamp).getTime()
         });
         
       } else {

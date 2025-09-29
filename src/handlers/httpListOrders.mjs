@@ -14,21 +14,22 @@ const ddbDocClient = DynamoDBDocumentClient.from(dynamoClient, {
   },
   unmarshallOptions: {
     wrapNumbers: false
-  }
 });
 
 const TABLE_NAME = process.env.TABLE_NAME;
 
 // Utility function for structured logging
-function log(level, message, metadata = {}) {
+const log = (level, message, extra = {}) => {
   const logEntry = {
     timestamp: new Date().toISOString(),
     level: level.toUpperCase(),
+    service: 'order-service',  
+    function: 'listOrders',
     message,
-    ...metadata
+    ...extra
   };
   console.log(JSON.stringify(logEntry));
-}
+};
 
 // Parse query parameters for filtering and pagination
 function parseQueryParameters(queryStringParameters) {
@@ -64,7 +65,7 @@ function parseQueryParameters(queryStringParameters) {
     if (queryStringParameters.nextToken) {
       try {
         params.lastEvaluatedKey = JSON.parse(Buffer.from(queryStringParameters.nextToken, 'base64').toString());
-      } catch (error) {
+      } catch (_error) {
         log('warn', 'Invalid pagination token provided', { token: queryStringParameters.nextToken });
       }
     }

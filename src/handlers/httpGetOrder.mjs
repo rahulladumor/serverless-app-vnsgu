@@ -24,6 +24,8 @@ function log(level, message, metadata = {}) {
   const logEntry = {
     timestamp: new Date().toISOString(),
     level: level.toUpperCase(),
+    service: 'order-service',
+    function: 'getOrder',
     message,
     ...metadata
   };
@@ -80,9 +82,16 @@ export const handler = async (event) => {
       };
     }
     
-    log('info', 'Retrieving order from database', {
+    log('info', '📊 Retrieving order from database', {
       requestId,
-      orderId
+      orderId,
+      tableName: TABLE_NAME
+    });
+
+    log('debug', '🔍 Executing DynamoDB GetItem operation', {
+      requestId,
+      orderId,
+      consistentRead: true
     });
     
     // Retrieve order from DynamoDB
@@ -92,6 +101,13 @@ export const handler = async (event) => {
       // Use consistent reads for the most up-to-date data
       ConsistentRead: true
     }));
+
+    log('debug', '📊 DynamoDB GetItem result', {
+      requestId,
+      orderId,
+      itemFound: !!result.Item,
+      consumedCapacity: result.ConsumedCapacity
+    });
     
     // Check if order exists
     if (!result.Item) {

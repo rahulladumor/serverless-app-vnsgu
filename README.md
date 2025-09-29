@@ -144,7 +144,7 @@ serverless-demo/
 ├── ⚙️ template.yaml                # SAM Infrastructure as Code
 ├── 📦 package.json                 # Node.js dependencies & scripts
 ├── 🔧 samconfig.toml               # Multi-environment SAM config
-├── 📋 .eslintrc.json               # Modern JavaScript linting
+├── 📋 eslint.config.js             # Modern JavaScript linting (ESLint v9)
 ├── 🚫 .gitignore                   # Git ignore patterns
 ├── 📜 LICENSE                      # MIT license
 │
@@ -167,6 +167,11 @@ serverless-demo/
 ├── 📁 .github/workflows/           # CI/CD Pipeline
 │   └── 🔄 deploy.yml               # GitHub Actions automation
 │
+├── 📁 postman/                     # API Testing Collection
+│   ├── 🧪 Serverless-Order-Management.postman_collection.json
+│   ├── 🌍 Serverless-Demo.postman_environment.json
+│   └── 📋 README.md                # Postman setup guide
+│
 ```
 
 ### 🔑 Key Files Explained
@@ -178,7 +183,9 @@ serverless-demo/
 | `package.json` | Dependencies & scripts | npm + AWS SDK v3 |
 | `samconfig.toml` | Environment configs | SAM CLI |
 | `scripts/*.sh` | Automation utilities | Bash |
+| `eslint.config.js` | Code linting configuration | ESLint v9 |
 | `docs/ARCHITECTURE.md` | Complete architecture + Lambda diagrams | Mermaid |
+| `postman/*.json` | Complete API testing collection | Postman |
 | `.github/workflows/deploy.yml` | CI/CD pipeline | GitHub Actions |
 
 ---
@@ -296,6 +303,31 @@ curl "$API_URL/orders?status=PENDING&limit=10&sortOrder=desc"
 # Pagination support
 curl "$API_URL/orders?nextToken=eyJpZCI6IjEyMyJ9"
 ```
+
+### 🧪 **Comprehensive API Testing with Postman**
+
+For educational demonstrations and comprehensive testing, use the included **Postman collection**:
+
+1. **Import Collection**: `postman/Serverless-Order-Management.postman_collection.json`
+2. **Import Environment**: `postman/Serverless-Demo.postman_environment.json`
+3. **Configure API URL**: Update `API_BASE_URL` in the environment
+4. **Start Testing**: Run requests to demonstrate serverless concepts
+
+**📚 Educational Features:**
+- **Automated test scripts** with educational logging
+- **Dynamic data generation** for realistic demos
+- **Load testing scenarios** to show auto-scaling
+- **Error handling examples** for learning
+- **CloudWatch monitoring guides** for observability
+
+**🎯 Perfect for demonstrating:**
+- Cold starts vs warm starts
+- DynamoDB GSI performance
+- SQS message processing
+- Auto-scaling behavior
+- Cost-effective execution model
+
+See **[postman/README.md](postman/README.md)** for detailed setup and demo instructions.
 
 ---
 

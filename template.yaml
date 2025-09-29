@@ -71,8 +71,8 @@ Resources:
   CreateOrderFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: src/
-      Handler: handlers/httpCreateOrder.handler
+      CodeUri: ./
+      Handler: src/handlers/httpCreateOrder.handler
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref OrdersTable
@@ -92,8 +92,8 @@ Resources:
   GetOrderFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: src/
-      Handler: handlers/httpGetOrder.handler
+      CodeUri: ./
+      Handler: src/handlers/httpGetOrder.handler
       Policies:
         - Version: '2012-10-17'
           Statement:
@@ -111,8 +111,8 @@ Resources:
   OrderProcessorFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: src/
-      Handler: handlers/orderProcessor.handler
+      CodeUri: ./
+      Handler: src/handlers/orderProcessor.handler
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref OrdersTable
@@ -130,8 +130,8 @@ Resources:
   ListOrdersFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: src/
-      Handler: handlers/httpListOrders.handler
+      CodeUri: ./
+      Handler: src/handlers/httpListOrders.handler
       Policies:
         - DynamoDBReadPolicy:
             TableName: !Ref OrdersTable
@@ -142,6 +142,31 @@ Resources:
             ApiId: !Ref HttpApi
             Path: /orders
             Method: GET
+
+  HealthCheckFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ./
+      Handler: src/handlers/healthCheck.handler
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref OrdersTable
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action: 
+                - sqs:GetQueueAttributes
+              Resource: !GetAtt OrderEventsQueue.Arn
+      Events:
+        HealthCheck:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref HttpApi
+            Path: /health
+            Method: GET
+      Environment:
+        Variables:
+          QUEUE_URL: !Ref OrderEventsQueue
   OrdersTable:
     Type: AWS::DynamoDB::Table
     Properties:

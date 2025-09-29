@@ -1,0 +1,640 @@
+{
+	"info": {
+		"_postman_id": "12345678-1234-1234-1234-123456789012",
+		"name": "🚀 Serverless Order Management System",
+		"description": "Complete API collection for demonstrating serverless architecture with AWS Lambda, API Gateway, DynamoDB, and SQS.\n\n## 🎯 Educational Demos:\n- Create orders and see real-time Lambda execution\n- Query orders using DynamoDB GSI\n- Observe CloudWatch logs and metrics\n- Monitor SQS message processing\n- Test error handling and validation\n\n## 📊 Architecture:\n- **API Gateway**: HTTP endpoint routing\n- **Lambda Functions**: Business logic execution\n- **DynamoDB**: NoSQL data storage with GSI\n- **SQS**: Async message processing\n- **CloudWatch**: Monitoring and logging",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "📝 Order Creation Demo",
+			"item": [
+				{
+					"name": "Create Simple Order",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// Generate unique customer name for demo",
+									"const customers = ['Alice Johnson', 'Bob Smith', 'Charlie Brown', 'Diana Prince', 'Eve Adams'];",
+									"const randomCustomer = customers[Math.floor(Math.random() * customers.length)];",
+									"pm.environment.set('customerName', randomCustomer);",
+									"",
+									"console.log('🎯 Demo: Creating order for customer:', randomCustomer);"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Educational test script for students",
+									"pm.test('✅ Order created successfully', function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"pm.test('📝 Response contains order ID', function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('id');",
+									"    pm.expect(jsonData.id).to.match(/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i);",
+									"    ",
+									"    // Store order ID for subsequent requests",
+									"    pm.environment.set('lastOrderId', jsonData.id);",
+									"    ",
+									"    console.log('🎉 Order created with ID:', jsonData.id);",
+									"});",
+									"",
+									"pm.test('⚡ Response time under 3 seconds', function () {",
+									"    pm.expect(pm.response.responseTime).to.be.below(3000);",
+									"    console.log('⏱️ Response time:', pm.response.responseTime + 'ms');",
+									"});",
+									"",
+									"// Log for educational purposes",
+									"console.log('📊 Status Code:', pm.response.status);",
+									"console.log('📋 Response Headers:', JSON.stringify(pm.response.headers.toJSON(), null, 2));"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"customerName\": \"{{customerName}}\",\n  \"items\": [\n    {\n      \"sku\": \"LAPTOP-001\",\n      \"qty\": 1,\n      \"price\": 999.99\n    },\n    {\n      \"sku\": \"MOUSE-001\",\n      \"qty\": 2,\n      \"price\": 29.99\n    }\n  ]\n}"
+						},
+						"url": {
+							"raw": "{{API_BASE_URL}}/orders",
+							"host": [
+								"{{API_BASE_URL}}"
+							],
+							"path": [
+								"orders"
+							]
+						},
+						"description": "📝 **Demo Purpose**: Show students how serverless functions handle HTTP POST requests\n\n🎓 **Learning Points**:\n- JSON request validation\n- UUID generation for order IDs\n- DynamoDB item creation\n- SQS message publishing\n- Structured logging\n\n⚡ **What Happens**:\n1. API Gateway receives request\n2. Lambda function validates input\n3. Order saved to DynamoDB\n4. Event published to SQS\n5. Response returned to client\n\n🔍 **Check CloudWatch Logs** after running this request!"
+					}
+				},
+				{
+					"name": "Create Order - Large Items",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('✅ Large order processed successfully', function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"pm.test('💰 Total value calculated correctly', function () {",
+									"    // Expected total: 1999.99 + 599.99 + 199.99 = 2799.97",
+									"    console.log('💡 Demo: This order should trigger SQS processing for high-value orders');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"customerName\": \"Enterprise Customer\",\n  \"items\": [\n    {\n      \"sku\": \"SERVER-001\",\n      \"qty\": 1,\n      \"price\": 1999.99\n    },\n    {\n      \"sku\": \"MONITOR-4K\",\n      \"qty\": 1,\n      \"price\": 599.99\n    },\n    {\n      \"sku\": \"KEYBOARD-PRO\",\n      \"qty\": 1,\n      \"price\": 199.99\n    }\n  ]\n}"
+						},
+						"url": {
+							"raw": "{{API_BASE_URL}}/orders",
+							"host": [
+								"{{API_BASE_URL}}"
+							],
+							"path": [
+								"orders"
+							]
+						},
+						"description": "💰 **Demo Purpose**: Show handling of high-value orders\n\n🎯 **Educational Value**:\n- Business logic for different order types\n- SQS message processing patterns\n- Monitoring high-value transactions"
+					}
+				},
+				{
+					"name": "Create Order - Validation Error",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('❌ Validation error handled correctly', function () {",
+									"    pm.response.to.have.status(400);",
+									"});",
+									"",
+									"pm.test('📋 Error message is descriptive', function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('error');",
+									"    pm.expect(jsonData.error).to.include('required');",
+									"    ",
+									"    console.log('🎓 Demo: Shows proper error handling and validation');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"items\": [\n    {\n      \"sku\": \"INVALID-ITEM\",\n      \"qty\": 1\n    }\n  ]\n}"
+						},
+						"url": {
+							"raw": "{{API_BASE_URL}}/orders",
+							"host": [
+								"{{API_BASE_URL}}"
+							],
+							"path": [
+								"orders"
+							]
+						},
+						"description": "❌ **Demo Purpose**: Show error handling in serverless functions\n\n🎓 **Learning Points**:\n- Input validation\n- Error response formatting\n- HTTP status codes\n- Structured error logging"
+					}
+				}
+			],
+			"description": "📝 **Order Creation Endpoints**\n\nDemonstrates how serverless functions handle different types of order creation scenarios."
+		},
+		{
+			"name": "🔍 Order Retrieval Demo",
+			"item": [
+				{
+					"name": "Get Order by ID",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('✅ Order retrieved successfully', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('📋 Order data is complete', function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('id');",
+									"    pm.expect(jsonData).to.have.property('customerName');",
+									"    pm.expect(jsonData).to.have.property('items');",
+									"    pm.expect(jsonData).to.have.property('status');",
+									"    pm.expect(jsonData).to.have.property('createdAt');",
+									"    ",
+									"    console.log('📊 Order Status:', jsonData.status);",
+									"    console.log('💰 Total Items:', jsonData.items.length);",
+									"});",
+									"",
+									"pm.test('⚡ Fast DynamoDB query', function () {",
+									"    pm.expect(pm.response.responseTime).to.be.below(1000);",
+									"    console.log('🔍 DynamoDB query time:', pm.response.responseTime + 'ms');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{API_BASE_URL}}/orders/{{lastOrderId}}",
+							"host": [
+								"{{API_BASE_URL}}"
+							],
+							"path": [
+								"orders",
+								"{{lastOrderId}}"
+							]
+						},
+						"description": "🔍 **Demo Purpose**: Show DynamoDB single-item retrieval\n\n🎓 **Learning Points**:\n- DynamoDB GetItem operation\n- UUID-based primary keys\n- Fast single-record lookups\n- Error handling for missing items"
+					}
+				},
+				{
+					"name": "Get Non-existent Order",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('❌ Non-existent order handled correctly', function () {",
+									"    pm.response.to.have.status(404);",
+									"});",
+									"",
+									"pm.test('📋 Proper error message', function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('error');",
+									"    pm.expect(jsonData.error).to.include('not found');",
+									"    ",
+									"    console.log('🎓 Demo: Shows proper 404 handling');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{API_BASE_URL}}/orders/00000000-0000-0000-0000-000000000000",
+							"host": [
+								"{{API_BASE_URL}}"
+							],
+							"path": [
+								"orders",
+								"00000000-0000-0000-0000-000000000000"
+							]
+						},
+						"description": "❌ **Demo Purpose**: Show error handling for missing resources\n\n🎓 **Educational Value**:\n- 404 error responses\n- DynamoDB conditional logic\n- Proper HTTP status codes"
+					}
+				}
+			],
+			"description": "🔍 **Order Retrieval Endpoints**\n\nDemonstrates DynamoDB single-item queries and error handling."
+		},
+		{
+			"name": "📋 Order Listing Demo",
+			"item": [
+				{
+					"name": "List All Orders",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('✅ Orders list retrieved successfully', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('📊 Response has pagination info', function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('orders');",
+									"    pm.expect(jsonData).to.have.property('count');",
+									"    pm.expect(jsonData.orders).to.be.an('array');",
+									"    ",
+									"    console.log('📈 Total Orders Found:', jsonData.count);",
+									"    console.log('📋 Orders in Response:', jsonData.orders.length);",
+									"    ",
+									"    if (jsonData.nextToken) {",
+									"        pm.environment.set('nextToken', jsonData.nextToken);",
+									"        console.log('📄 Pagination token available for next page');",
+									"    }",
+									"});",
+									"",
+									"pm.test('⚡ DynamoDB scan performance', function () {",
+									"    pm.expect(pm.response.responseTime).to.be.below(2000);",
+									"    console.log('🔍 DynamoDB scan time:', pm.response.responseTime + 'ms');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{API_BASE_URL}}/orders",
+							"host": [
+								"{{API_BASE_URL}}"
+							],
+							"path": [
+								"orders"
+							]
+						},
+						"description": "📋 **Demo Purpose**: Show DynamoDB table scanning\n\n🎓 **Learning Points**:\n- DynamoDB Scan operation\n- Pagination with nextToken\n- Response formatting\n- Performance considerations"
+					}
+				},
+				{
+					"name": "List Orders - With Pagination",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('✅ Paginated results retrieved', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('📄 Pagination working correctly', function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData.orders.length).to.be.at.most(5);",
+									"    console.log('📊 Demo: Showing pagination in action');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{API_BASE_URL}}/orders?limit=5",
+							"host": [
+								"{{API_BASE_URL}}"
+							],
+							"path": [
+								"orders"
+							],
+							"query": [
+								{
+									"key": "limit",
+									"value": "5"
+								}
+							]
+						},
+						"description": "📄 **Demo Purpose**: Show pagination in serverless APIs\n\n🎯 **Educational Value**:\n- Query parameter handling\n- DynamoDB pagination\n- Limit controls"
+					}
+				},
+				{
+					"name": "List Orders - Filter by Status (GSI)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('✅ GSI query successful', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('🔍 Status filtering working', function () {",
+									"    const jsonData = pm.response.json();",
+									"    if (jsonData.orders.length > 0) {",
+									"        jsonData.orders.forEach(order => {",
+									"            pm.expect(order.status).to.equal('PENDING');",
+									"        });",
+									"    }",
+									"    console.log('🎯 Demo: GSI enables efficient status-based queries');",
+									"    console.log('📊 Filtered Orders Count:', jsonData.count);",
+									"});",
+									"",
+									"pm.test('⚡ GSI query performance', function () {",
+									"    pm.expect(pm.response.responseTime).to.be.below(1500);",
+									"    console.log('🚀 GSI Query Time:', pm.response.responseTime + 'ms');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{API_BASE_URL}}/orders?status=PENDING&limit=10",
+							"host": [
+								"{{API_BASE_URL}}"
+							],
+							"path": [
+								"orders"
+							],
+							"query": [
+								{
+									"key": "status",
+									"value": "PENDING"
+								},
+								{
+									"key": "limit",
+									"value": "10"
+								}
+							]
+						},
+						"description": "🔍 **Demo Purpose**: Show DynamoDB Global Secondary Index (GSI) usage\n\n🎓 **Learning Points**:\n- GSI for efficient filtering\n- Query vs Scan performance\n- Status-based queries\n- Index design patterns"
+					}
+				},
+				{
+					"name": "List Orders - Sorted Descending",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('✅ Sorted results retrieved', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('📊 Sort order validation', function () {",
+									"    const jsonData = pm.response.json();",
+									"    if (jsonData.orders.length > 1) {",
+									"        const first = new Date(jsonData.orders[0].createdAt);",
+									"        const second = new Date(jsonData.orders[1].createdAt);",
+									"        pm.expect(first.getTime()).to.be.at.least(second.getTime());",
+									"        console.log('📈 Demo: Newest orders appear first');",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{API_BASE_URL}}/orders?sortOrder=desc&limit=5",
+							"host": [
+								"{{API_BASE_URL}}"
+							],
+							"path": [
+								"orders"
+							],
+							"query": [
+								{
+									"key": "sortOrder",
+									"value": "desc"
+								},
+								{
+									"key": "limit",
+									"value": "5"
+								}
+							]
+						},
+						"description": "📊 **Demo Purpose**: Show sorting capabilities\n\n🎯 **Educational Value**:\n- DynamoDB sort key usage\n- Ascending vs descending sorts\n- Query parameter validation"
+					}
+				}
+			],
+			"description": "📋 **Order Listing Endpoints**\n\nDemonstrates DynamoDB querying patterns, GSI usage, and pagination."
+		},
+		{
+			"name": "🧪 Load Testing Demo",
+			"item": [
+				{
+					"name": "Rapid Order Creation - Auto Scaling Test",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// Generate unique data for load testing",
+									"const timestamp = Date.now();",
+									"const randomId = Math.floor(Math.random() * 1000);",
+									"pm.environment.set('loadTestCustomer', `LoadTest-${timestamp}-${randomId}`);",
+									"pm.environment.set('loadTestSku', `ITEM-${randomId}`);"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('🚀 Auto-scaling handles load', function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"pm.test('⚡ Performance under load', function () {",
+									"    // Allow more time during auto-scaling",
+									"    pm.expect(pm.response.responseTime).to.be.below(5000);",
+									"    console.log('📊 Response time during load:', pm.response.responseTime + 'ms');",
+									"});",
+									"",
+									"// Educational logging",
+									"console.log('🎯 Load Test: Customer -', pm.environment.get('loadTestCustomer'));",
+									"console.log('📈 Demo: Run this multiple times rapidly to see auto-scaling!');"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"customerName\": \"{{loadTestCustomer}}\",\n  \"items\": [\n    {\n      \"sku\": \"{{loadTestSku}}\",\n      \"qty\": 1,\n      \"price\": 99.99\n    }\n  ]\n}"
+						},
+						"url": {
+							"raw": "{{API_BASE_URL}}/orders",
+							"host": [
+								"{{API_BASE_URL}}"
+							],
+							"path": [
+								"orders"
+							]
+						},
+						"description": "🚀 **Demo Purpose**: Show serverless auto-scaling in action\n\n🎓 **Instructions for Students**:\n1. Run this request multiple times rapidly (10-20 times)\n2. Check CloudWatch metrics for concurrent executions\n3. Observe cold starts vs warm starts in logs\n4. Monitor DynamoDB and SQS metrics\n\n📊 **What to Watch**:\n- Lambda concurrent execution count\n- Response time variations (cold vs warm starts)\n- DynamoDB write throttling (if any)\n- SQS message queue depth"
+					}
+				}
+			],
+			"description": "🧪 **Load Testing Endpoints**\n\nDemonstrates serverless auto-scaling capabilities."
+		},
+		{
+			"name": "📊 Monitoring & Observability Demo",
+			"item": [
+				{
+					"name": "Health Check Endpoint",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('✅ API is healthy', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('📊 System status check', function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('status');",
+									"    pm.expect(jsonData.status).to.equal('healthy');",
+									"    console.log('✅ System Status: Healthy');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{API_BASE_URL}}/health",
+							"host": [
+								"{{API_BASE_URL}}"
+							],
+							"path": [
+								"health"
+							]
+						},
+						"description": "📊 **Demo Purpose**: Basic health check endpoint\n\n🎯 **Educational Value**:\n- Simple Lambda function structure\n- Health monitoring patterns\n- API Gateway integration"
+					}
+				}
+			],
+			"description": "📊 **Monitoring Endpoints**\n\nBasic health and monitoring endpoints."
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"id": "global-prerequest",
+				"exec": [
+					"// Global pre-request script for educational logging",
+					"console.log('🚀 Serverless Demo - API Request Starting');",
+					"console.log('📍 Endpoint:', pm.request.url.toString());",
+					"console.log('🔧 Method:', pm.request.method);",
+					"console.log('⏰ Timestamp:', new Date().toISOString());",
+					"",
+					"// Check if API URL is configured",
+					"if (!pm.environment.get('API_BASE_URL')) {",
+					"    console.warn('⚠️ API_BASE_URL not configured! Please set this in your environment.');",
+					"}"
+				],
+				"type": "text/javascript"
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"id": "global-test",
+				"exec": [
+					"// Global test script for educational insights",
+					"console.log('📊 Response Status:', pm.response.status);",
+					"console.log('⏱️ Response Time:', pm.response.responseTime + 'ms');",
+					"console.log('📦 Response Size:', pm.response.responseSize + ' bytes');",
+					"",
+					"// Educational tips based on response time",
+					"if (pm.response.responseTime > 1000) {",
+					"    console.log('🐌 Demo Note: Slow response might indicate cold start!');",
+					"} else if (pm.response.responseTime < 100) {",
+					"    console.log('🔥 Demo Note: Fast response indicates warm Lambda function!');",
+					"}",
+					"",
+					"console.log('✅ Request completed successfully\\n');"
+				],
+				"type": "text/javascript"
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "API_BASE_URL",
+			"value": "https://fli5nt4dt7.execute-api.us-east-1.amazonaws.com",
+			"type": "string",
+			"description": "Base URL for your deployed serverless API"
+		}
+	]
+}

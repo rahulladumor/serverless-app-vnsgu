@@ -14,6 +14,7 @@ const ddbDocClient = DynamoDBDocumentClient.from(dynamoClient, {
   },
   unmarshallOptions: {
     wrapNumbers: false
+  }
 });
 
 const TABLE_NAME = process.env.TABLE_NAME;

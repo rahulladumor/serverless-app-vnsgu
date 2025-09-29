@@ -21,6 +21,7 @@ A **modern, production-ready** serverless application built with the latest AWS 
 - [🛠️ Troubleshooting](#️-troubleshooting)
 - [🧹 Cleanup](#-cleanup)
 - [🆕 What's New in 2025](#-whats-new-in-2025)
+- [🏗️ Architecture Documentation](#️-architecture-documentation)
 - [📖 Additional Resources](#-additional-resources)
 
 ---
@@ -54,6 +55,8 @@ This application showcases:
 ## 🏗️ Architecture Overview
 
 Our **modern Order Management Service** demonstrates enterprise serverless patterns:
+
+> 📊 **Visual Diagrams**: See [Architecture Documentation](#️-architecture-documentation) for detailed visual diagrams of system architecture, data flow, cost optimization, and monitoring.
 
 ```
                            🌐 INTERNET
@@ -443,31 +446,28 @@ sam logs -n OrderProcessorFunction --stack-name serverless-demo --tail
 
 ## 🛠️ Troubleshooting
 
-### Common Issues
+### **📖 Comprehensive Troubleshooting Guide**
+**📖 See**: [Complete Troubleshooting Guide](docs/TROUBLESHOOTING.md)
 
-#### 1. Deployment Fails
+**Covers**:
+- **Quick Fixes** - Common "command not found" and credential issues
+- **Deployment Issues** - SAM build failures, permissions, stack conflicts
+- **API Issues** - 502/503 errors, CORS problems, 404 responses
+- **Database Issues** - DynamoDB access denied, table not found
+- **SQS Issues** - Message processing failures, dead letter queues
+- **Performance Issues** - Cold starts, timeouts, latency problems
+- **Emergency Procedures** - Complete reset and fallback options
+
+### **🚨 Quick Fixes**
 ```bash
-# Check SAM version
-sam --version
-
 # Validate template
 sam validate
 
-# Check CloudFormation events
+# Check deployment
 aws cloudformation describe-stack-events --stack-name serverless-demo
-```
 
-#### 2. Function Errors
-```bash
-# Check function logs
-aws logs describe-log-groups
-aws logs get-log-events --log-group-name "/aws/lambda/CreateOrderFunction"
-```
-
-#### 3. API Gateway Issues
-```bash
-# Test locally
-sam local start-api
+# View function logs
+sam logs -n CreateOrderFunction --tail
 curl http://localhost:3000/orders
 ```
 
@@ -528,6 +528,40 @@ https://staging-api.yourdomain.com
 # Production environment
 https://api.yourdomain.com
 ```
+
+---
+
+## 🏗️ Architecture Documentation
+
+### **📊 Visual Architecture Diagrams**
+
+![Main Architecture](docs/architecture_diagram.png)
+*Complete serverless system overview showing API Gateway, Lambda functions, DynamoDB, and SQS integration*
+
+![Data Flow](docs/data_flow_diagram.png)
+*Step-by-step order processing flow from creation to completion*
+
+![Cost & Scaling](docs/cost_scaling_diagram.png)
+*Serverless cost benefits and auto-scaling capabilities*
+
+![Monitoring](docs/monitoring_diagram.png)
+*CloudWatch monitoring and observability setup*
+
+### **📖 Complete Technical Guide**
+**📖 See**: [Architecture Deep Dive](docs/ARCHITECTURE.md)
+
+**Includes**:
+- **Lambda Invocation Flow** - Detailed sequence diagrams showing cold vs warm starts
+- **AWS Architecture Overview** - High-level system flowcharts  
+- **Request Flow Diagrams** - Step-by-step processing workflows
+- **Component Deep Dive** - Technical specifications and configurations
+- **Security & Monitoring** - Production-ready patterns and best practices
+
+### **🎯 Perfect for**
+- **Technical workshops** - In-depth serverless concepts
+- **Architecture reviews** - Production system analysis
+- **Educational sessions** - Understanding AWS Lambda internals
+- **Documentation** - Comprehensive reference materials
 
 ---
 

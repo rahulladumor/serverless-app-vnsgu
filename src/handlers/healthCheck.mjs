@@ -1,7 +1,5 @@
-import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { SQSClient, GetQueueAttributesCommand } from '@aws-sdk/client-sqs';
 
-const dynamoClient = new DynamoDBClient({});
 const sqsClient = new SQSClient({});
 
 /**

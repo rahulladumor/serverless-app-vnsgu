@@ -57,7 +57,7 @@ sequenceDiagram
     end
 
     opt If placed in VPC
-        WRK->>WRK: Attach ENI (latency on cold; cached on reuse)
+        WRK->>WRK: Attach ENI (latency on cold cached on reuse)
     end
 ```
 

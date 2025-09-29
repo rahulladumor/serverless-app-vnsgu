@@ -23,7 +23,7 @@ This guide shows you exactly what to watch in CloudWatch to demonstrate the comp
 **🎓 What to show students:**
 ```json
 {
-  "timestamp": "2024-01-15T10:30:00.123Z",
+  "timestamp": "2025-01-15T10:30:00.123Z",
   "level": "INFO",
   "service": "order-service",
   "function": "createOrder",
@@ -46,7 +46,7 @@ This guide shows you exactly what to watch in CloudWatch to demonstrate the comp
 **🎓 What to show students:**
 ```json
 {
-  "timestamp": "2024-01-15T10:30:01.456Z",
+  "timestamp": "2025-01-15T10:30:01.456Z",
   "level": "INFO",
   "service": "order-processor",
   "function": "orderProcessor",
@@ -70,7 +70,7 @@ This guide shows you exactly what to watch in CloudWatch to demonstrate the comp
 **🎓 What to show students:**
 ```json
 {
-  "timestamp": "2024-01-15T10:30:02.789Z",
+  "timestamp": "2025-01-15T10:30:02.789Z",
   "level": "INFO",
   "service": "order-service",
   "function": "getOrder",
@@ -93,7 +93,7 @@ This guide shows you exactly what to watch in CloudWatch to demonstrate the comp
 **🎓 What to show students:**
 ```json
 {
-  "timestamp": "2024-01-15T10:30:03.012Z",
+  "timestamp": "2025-01-15T10:30:03.012Z",
   "level": "INFO",
   "service": "health-check",
   "function": "healthCheck",

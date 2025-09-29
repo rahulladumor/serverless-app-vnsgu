@@ -2,7 +2,7 @@
 
 A **modern, production-ready** serverless application built with the latest AWS services and Node.js 22, demonstrating enterprise-grade serverless development patterns.
 
-> **🆕 2024 Edition**: Node.js 22, AWS SDK v3, ES Modules, DynamoDB GSI, monitoring, and CI/CD pipeline!
+> **🆕 2025 Edition**: Node.js 22, AWS SDK v3, ES Modules, DynamoDB GSI, monitoring, and CI/CD pipeline!
 
 ---
 
@@ -20,7 +20,7 @@ A **modern, production-ready** serverless application built with the latest AWS 
 - [🚀 CI/CD Pipeline](#-cicd-pipeline)
 - [🛠️ Troubleshooting](#️-troubleshooting)
 - [🧹 Cleanup](#-cleanup)
-- [🆕 What's New in 2024](#-whats-new-in-2024)
+- [🆕 What's New in 2025](#-whats-new-in-2025)
 - [📖 Additional Resources](#-additional-resources)
 
 ---
@@ -35,7 +35,7 @@ This application showcases:
 - **Auto-scaling** - Zero to thousands of concurrent executions
 - **Pay-per-execution** - No idle time charges
 
-### ⚡ **Modern AWS Stack (2024)**
+### ⚡ **Modern AWS Stack (2025)**
 - **AWS Lambda** - Node.js 22.x runtime with ES modules
 - **API Gateway HTTP API** - Cost-effective HTTP endpoints
 - **DynamoDB** - NoSQL database with Global Secondary Indexes
@@ -288,7 +288,7 @@ Expected Response:
     {"sku": "mouse", "qty": 2, "price": 29.99}
   ],
   "status": "CONFIRMED",
-  "createdAt": "2024-01-15T10:30:00.000Z"
+  "createdAt": "2025-01-15T10:30:00.000Z"
 }
 ```
 
@@ -531,7 +531,7 @@ https://api.yourdomain.com
 
 ---
 
-## 🆕 What's New in 2024
+## 🆕 What's New in 2025
 
 This workshop has been completely modernized with the latest AWS services and best practices:
 

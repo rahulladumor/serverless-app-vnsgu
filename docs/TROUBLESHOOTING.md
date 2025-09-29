@@ -401,8 +401,8 @@ aws cloudformation delete-stack --stack-name serverless-demo
      --namespace AWS/Lambda \
      --metric-name Invocations \
      --dimensions Name=FunctionName,Value=CreateOrderFunction \
-     --start-time 2024-01-01T00:00:00Z \
-     --end-time 2024-01-02T00:00:00Z \
+     --start-time 2025-01-01T00:00:00Z \
+     --end-time 2025-01-02T00:00:00Z \
      --period 3600 \
      --statistics Sum
    ```

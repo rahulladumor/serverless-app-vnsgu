@@ -77,7 +77,7 @@ const log = (level, message, extra = {}) => {
 
 export const handler = async (event) => {
   const requestId = event.requestContext?.requestId || 'unknown';
-  
+  console.log("This is for demo purpose")
   log('info', 'Processing create order request', {
     requestId,
     httpMethod: event.httpMethod,
